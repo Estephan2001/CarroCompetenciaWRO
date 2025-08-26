@@ -36,9 +36,15 @@ Servo ServoUltrasonicoAtras;     // Creamos un objeto servo
 
 // Variables Robot
 
+// Posiciones actuales
 int PosServoDireccion{ 90 };
 int PosServoUltrasonicoAdelante{ 90 };
 int PosServoUltrasonicoAtrasPin{ 90 };
+// Posiciones deseadas
+int PosServoDireccionDeseada{ 90 };
+int PosServoUltrasonicoAdelanteDeseada{ 90 };
+int PosServoUltrasonicoAtrasPinDeseada{ 90 };
+
 
 void setup() {
   inicioMPU();
