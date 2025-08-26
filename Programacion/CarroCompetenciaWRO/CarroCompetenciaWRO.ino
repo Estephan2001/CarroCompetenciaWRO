@@ -29,11 +29,16 @@
 #define InputMotor2 13
 
 
-
 // Definir Objetos
 Servo ServoDireccion;            // Creamos un objeto servo
 Servo ServoUltrasonicoAdelante;  // Creamos un objeto servo
 Servo ServoUltrasonicoAtras;     // Creamos un objeto servo
+
+// Variables Robot
+
+int PosServoDireccion{ 90 };
+int PosServoUltrasonicoAdelante{ 90 };
+int PosServoUltrasonicoAtrasPin{ 90 };
 
 void setup() {
   inicioMPU();
@@ -43,9 +48,9 @@ void setup() {
   ServoUltrasonicoAdelante.attach(ServoUltrasonicoAdelantePin);  // Pin donde está conectado el servo (PWM)
   ServoUltrasonicoAtras.attach(ServoUltrasonicoAtrasPin);        // Pin donde está conectado el servo (PWM)
   //Posiciones iniciales
-  ServoDireccion.write(90);
-  ServoUltrasonicoAdelante.write(90);
-  ServoUltrasonicoAtras.write(90);
+  ServoDireccion.write(PosServoDireccion);
+  ServoUltrasonicoAdelante.write(PosServoUltrasonicoAdelante);
+  ServoUltrasonicoAtras.write(PosServoUltrasonicoAtrasPin);
 
   //Inicializar Ultrasónicos
   init_UltraSonico(TriggerUltrasonicoAtras, EchoUltrasonicoAtras);
@@ -73,7 +78,8 @@ void setup() {
 }
 
 void loop() {
-  mpuupdate();
+  // mpuupdate();
+
   // Distancia_UltraSonico(triggerPin, echoPin);
 
 
