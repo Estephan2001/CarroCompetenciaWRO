@@ -18,6 +18,13 @@
 //Pines de Seguidores de línea analogos
 #define SeguidorIzquierda A6
 #define SeguidorDerecha A7
+//Pines sensor color
+#define PinSalidaColor 8
+#define PinS0 A0
+#define PinS1 A1
+#define PinS2 A2
+#define PinS3 A3
+
 
 
 // Definir Objetos
