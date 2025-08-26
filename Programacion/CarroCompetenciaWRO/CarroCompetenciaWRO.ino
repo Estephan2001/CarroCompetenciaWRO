@@ -8,6 +8,17 @@
 #define ServoDireccionPin 9
 #define ServoUltrasonicoAdelantePin 10
 #define ServoUltrasonicoAtrasPin  11
+// Pines de ultrasonicos
+#define TriggerUltrasonicoAtras 2
+#define EchoUltrasonicoAtras 3
+#define TriggerUltrasonicoAdelante 2
+#define EchoUltrasonicoAdelante 3
+#define TriggerUltrasonicoObstaculo 6
+#define EchoUltrasonicoObstaculo 7
+//Pines de Seguidores de línea analogos
+#define SeguidorIzquierda A6
+#define SeguidorDerecha A7
+
 
 // Definir Objetos
 Servo ServoDireccion;            // Creamos un objeto servo
@@ -25,9 +36,19 @@ void setup() {
   ServoDireccion.write(90);
   ServoUltrasonicoAdelante.write(90);
   ServoUltrasonicoAtras.write(90);
+
+  //Inicializar Ultrasónicos
+  init_UltraSonico(TriggerUltrasonicoAtras, EchoUltrasonicoAtras);
+  init_UltraSonico(TriggerUltrasonicoAdelante, EchoUltrasonicoAdelante);
+  init_UltraSonico(TriggerUltrasonicoObstaculo, EchoUltrasonicoObstaculo);
+
+  //Inicializar Seguidores de línea
+  pinMode(SeguidorIzquierda,INPUT);
+  pinMode(SeguidorDerecha,INPUT);
 }
 
 void loop() {
   mpuupdate();
+ // Distancia_UltraSonico(triggerPin, echoPin);
  
 }
