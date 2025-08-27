@@ -57,7 +57,7 @@ int UMBRAL_DIF = 15;  // Diferencia mínima entre componentes para decidir
 int MIN_VAL = 20;     // Valor mínimo válido para considerar un color
 int MAX_VAL = 255;    // Valor máximo válido (dependerá de tu sensor)
 
-char DireccionCarro{};  // A B  (Adeltante o Atras)
+char DireccionCarro{};  // A B P(Adeltante o Atras o Parar)
 int AnguloActual{};     // Valor de MPU6050 o giroscopio
 int DistanciaUltrasonicoDelante{};
 int DistanciaUltrasonicoAtras{};
@@ -121,6 +121,7 @@ void setup() {
 
   // Sentencia para escoger lado (Botones)
   LadoGiro = 'D';
+  DireccionCarro = 'B';
 
 
   if (LadoGiro == 'I') {
@@ -161,12 +162,21 @@ void loop() {
     PosServoUltrasonicoAtrasDeseada = 90;
   }
 
-
+  // El Robot Se mueva a adelante, atras o pare.
+  if (DireccionCarro == 'A') {
+    digitalWrite(InputMotor1, HIGH);
+    digitalWrite(InputMotor2, LOW);
+  } else if (DireccionCarro == 'B') {
+    digitalWrite(InputMotor1, LOW);
+    digitalWrite(InputMotor2, HIGH);
+  } else if (DireccionCarro == 'P') {
+    digitalWrite(InputMotor1, LOW);
+    digitalWrite(InputMotor2, LOW);
+  }
 
   // Mediciones
   // Angulo de carro
-  mpuupdate();
-  AnguloActual = yaw;
+
   if (millis() >= TiempoPasadoMediciones + IntervaloMediciones) {
     //UltraSonico
 
@@ -186,8 +196,8 @@ void loop() {
     Color = detectarColor(Rojo, Verde, Azul);
 
     // Medir Angulos
-
-    Serial.println(AnguloActual);
+    mpuupdate();
+    AnguloActual = yaw;
 
     TiempoPasadoMediciones = millis();
   }

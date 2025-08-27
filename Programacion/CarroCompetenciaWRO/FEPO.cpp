@@ -3,7 +3,7 @@
 * 
 */
 #include "FEPO.h"
-#include <Wire.h>// LIBRERIA PARA PODER USAR EL I2C
+#include <Wire.h>  // LIBRERIA PARA PODER USAR EL I2C
 //#include "BluetoothSerial.h"
 #include "Stdlib.h"
 #include <EEPROM.h>
@@ -13,7 +13,7 @@
 float gyroXoffset, gyroYoffset, gyroZoffset;  ///variables para los ca
 float temp, accX, accY, accZ, gyroX, gyroY, gyroZ;
 float angleGyroX, angleGyroY, angleGyroZ,
-      angleAccX, angleAccY, angleAccZ;
+  angleAccX, angleAccY, angleAccZ;
 
 float angleX, angleY, angleZ;
 float roll, pitch, yaw;
@@ -23,29 +23,28 @@ float intervalo1 = 0;
 
 
 void inicioMPU() {
-  Wire.begin(); // iniciamos comunicacion I2C
-  MPUwrite(0x19, 0x00);//MPU6050_SMPLRT_DIV
-  MPUwrite(0x1a, 0x00);//MPU6050_CONFIG
-  MPUwrite(0x1b, 0x08);//MPU6050_GYRO_CONFIG
-  MPUwrite(0x1c, 0x00);//MPU6050_ACCEL_CONFIG
-  MPUwrite(0x6b, 0x01);//MPU6050_PWR_MGMT_1
+  Wire.begin();          // iniciamos comunicacion I2C
+  MPUwrite(0x19, 0x00);  //MPU6050_SMPLRT_DIV
+  MPUwrite(0x1a, 0x00);  //MPU6050_CONFIG
+  MPUwrite(0x1b, 0x08);  //MPU6050_GYRO_CONFIG
+  MPUwrite(0x1c, 0x00);  //MPU6050_ACCEL_CONFIG
+  MPUwrite(0x6b, 0x01);  //MPU6050_PWR_MGMT_1
   //mpuupdate();
   //angleGyroX = 0;
   //angleGyroY = 0;
   preintervalo1 = millis();
   calcoffset(true);
-
 }
 
 void MPUwrite(byte reg, byte datas) {
-  Wire.beginTransmission(0x68);//MPU6050_ADDR
+  Wire.beginTransmission(0x68);  //MPU6050_ADDR
   Wire.write(reg);
   Wire.write(datas);
   Wire.endTransmission();
 }
 
 byte MPUread(byte reg) {
-  Wire.beginTransmission(0x68);//MPU6050_ADDR
+  Wire.beginTransmission(0x68);  //MPU6050_ADDR
   Wire.write(reg);
   Wire.endTransmission(true);
   Wire.requestFrom(0x68, 1);
@@ -60,7 +59,7 @@ void calcoffset(bool console) {
   delay(1000);
 
   if (console) {
-   /* Serial.println();
+    /* Serial.println();
     Serial.println("========================================");
     Serial.println("CALCULANDO OFFSETS");
     Serial.print("NO MOVER MPU6050");*/
@@ -89,7 +88,7 @@ void calcoffset(bool console) {
   gyroZoffset = z / 3000;
 
   if (console) {
-   /* Serial.println();
+    /* Serial.println();
     Serial.println("CALCULADOS!");
     Serial.print("X : "); Serial.println(gyroXoffset);
     Serial.print("Y : "); Serial.println(gyroYoffset);
@@ -98,12 +97,11 @@ void calcoffset(bool console) {
     Serial.print("========================================");*/
     delay(500);
   }
-
 }
 
 void mpuupdate() {
   int16_t rawAccX, rawAccY, rawAccZ, rawTemp,
-          rawGyroX, rawGyroY, rawGyroZ;
+    rawGyroX, rawGyroY, rawGyroZ;
 
   Wire.beginTransmission(0x68);
   Wire.write(0x3B);
@@ -118,50 +116,48 @@ void mpuupdate() {
   rawGyroY = Wire.read() << 8 | Wire.read();
   rawGyroZ = Wire.read() << 8 | Wire.read();
 
+  // Conversión
   temp = (rawTemp + 12412.0) / 340.0;
+  accX = ((float)rawAccX) / 16384.0;
+  accY = ((float)rawAccY) / 16384.0;
+  accZ = ((float)rawAccZ) / 16384.0;
 
-  accX = ((float)rawAccX) / 16384;
-  accY = ((float)rawAccY) / 16384;
-  accZ = ((float)rawAccZ) / 16384;
-
-  angleAccX = atan2(accY, sqrt(accZ * accZ + accX * accX)) * 360 / 2.0 / PI;
-  angleAccY = atan2(accX, sqrt(accZ * accZ + accY * accY)) * 360 / -2.0 / PI;
+  angleAccX = atan2(accY, sqrt(accZ * accZ + accX * accX)) * 180.0 / PI;
+  angleAccY = atan2(accX, sqrt(accZ * accZ + accY * accY)) * -180.0 / PI;
 
   gyroX = ((float)rawGyroX) / 65.5;
   gyroY = ((float)rawGyroY) / 65.5;
   gyroZ = ((float)rawGyroZ) / 65.5;
 
+  // Corrección offsets
   gyroX -= gyroXoffset;
   gyroY -= gyroYoffset;
   gyroZ -= gyroZoffset;
 
-  float accCoef = 0.02f;
-  float gyroCoef = 0.98f;
+  // Intervalo más preciso con micros()
+  static unsigned long lastMicros = micros();
+  float dt = (micros() - lastMicros) / 1000000.0;
+  lastMicros = micros();
 
-  intervalo1 = (millis() - preintervalo1) * 0.001;
+  // Integración giros
+  angleGyroX += gyroX * dt;
+  angleGyroY += gyroY * dt;
+  angleGyroZ += gyroZ * dt;
 
-  angleGyroX += gyroX * intervalo1;
-  angleGyroY += gyroY * intervalo1;
-  angleGyroZ += gyroZ * intervalo1;
-/*
-  if (angleGyroZ> 360){
-    angleGyroZ = 0;
-  }else if (angleGyroZ<0){
-    angleGyroZ = 360;
-  } 
-*/
-  angleX = (gyroCoef * (angleX + gyroX * intervalo1)) + (accCoef * angleAccX);
-  angleY = (gyroCoef * (angleY + gyroY * intervalo1)) + (accCoef * angleAccY);
-  angleZ = angleGyroZ;
+  // Normalizar yaw a 0–360
+  //if (angleGyroZ >= 360) angleGyroZ -= 360;
+  //if (angleGyroZ < 0) angleGyroZ += 360;
 
-  preintervalo1 = millis();
+  // Filtro complementario con más corrección del acelerómetro
+  float accCoef = 0.03f;   // Corrección más agresiva del acelerómetro
+  float gyroCoef = 0.95f;  // Menos dependencia del giroscopio
+
+  angleX = gyroCoef * (angleX + gyroX * dt) + accCoef * angleAccX;
+  angleY = gyroCoef * (angleY + gyroY * dt) + accCoef * angleAccY;
+  angleZ = angleGyroZ;  // sigue viniendo solo del giroscopio (sin magnetómetro)
 
 
   roll = angleX;
   pitch = angleY;
   yaw = angleZ;
-
 }
-
-
-
