@@ -3,6 +3,7 @@
 #include "FEPO.h"
 #include <Servo.h>
 #include "UltraSonicoSM.h"
+#include "ValorReferenciaSM.h"
 
 // Constantes (Definimos en dónde conectamos todo)
 #define ServoDireccionPin 9
@@ -11,10 +12,11 @@
 // Pines de ultrasonicos
 #define TriggerUltrasonicoAtras 2
 #define EchoUltrasonicoAtras 3
-#define TriggerUltrasonicoAdelante 2
-#define EchoUltrasonicoAdelante 3
-#define TriggerUltrasonicoObstaculo 6
-#define EchoUltrasonicoObstaculo 7
+#define TriggerUltrasonicoAdelante 6
+#define EchoUltrasonicoAdelante 7
+#define TriggerUltrasonicoObstaculo 5
+#define EchoUltrasonicoObstaculo 4
+#define TiempoEntrePosiciones 15  //ms
 //Pines de Seguidores de línea analogos
 #define SeguidorIzquierda A6
 #define SeguidorDerecha A7
@@ -36,21 +38,44 @@ Servo ServoUltrasonicoAtras;     // Creamos un objeto servo
 
 // Variables Robot
 
-// Posiciones actuales
+// Posiciones actuales Servo
 int PosServoDireccion{ 90 };
 int PosServoUltrasonicoAdelante{ 90 };
-int PosServoUltrasonicoAtrasPin{ 90 };
+int PosServoUltrasonicoAtras{ 90 };
 // Posiciones deseadas
 int PosServoDireccionDeseada{ 90 };
 int PosServoUltrasonicoAdelanteDeseada{ 90 };
-int PosServoUltrasonicoAtrasPinDeseada{ 90 };
+int PosServoUltrasonicoAtrasDeseada{ 90 };
+// Variables Sensores
+char LadoGiro{};  // I C D (Izquierda Centro Derecha)
 
-char LadoGiro{};
-char Color{};
-int AnguloActual{};
+char Color{};  // R V A (Rojo Verde Azul)
+int Rojo{};
+int Verde{};
+int Azul{};
+int UMBRAL_DIF = 15;      // Diferencia mínima entre componentes para decidir
+int MIN_VAL = 20;         // Valor mínimo válido para considerar un color
+int MAX_VAL = 255;        // Valor máximo válido (dependerá de tu sensor)
+
+char DireccionCarro{};  // A B  (Adeltante o Atras)
+int AnguloActual{};     // Valor de MPU6050 o giroscopio
 int DistanciaUltrasonicoDelante{};
 int DistanciaUltrasonicoAtras{};
 int DistanciaUltrasonicoObstaculo{};
+int ValorLineaIzquierda{};
+int ValorLineaDerecha{};
+
+// Variables de pasos
+int Acto{ 0 };
+
+
+// Timers
+unsigned long TiempoServosPasado{};
+int IntervaloEntrePosiciones{ TiempoEntrePosiciones };
+
+// Timer Mediciones
+unsigned long TiempoPasadoMediciones{};
+int IntervaloMediciones{ 20 };
 
 
 
@@ -65,7 +90,7 @@ void setup() {
   //Posiciones iniciales
   ServoDireccion.write(PosServoDireccion);
   ServoUltrasonicoAdelante.write(PosServoUltrasonicoAdelante);
-  ServoUltrasonicoAtras.write(PosServoUltrasonicoAtrasPin);
+  ServoUltrasonicoAtras.write(PosServoUltrasonicoAtras);
 
   //Inicializar Ultrasónicos
   init_UltraSonico(TriggerUltrasonicoAtras, EchoUltrasonicoAtras);
@@ -90,9 +115,94 @@ void setup() {
   pinMode(InputMotor2, OUTPUT);
   digitalWrite(InputMotor1, LOW);
   digitalWrite(InputMotor2, LOW);
+  delay(3000);
+
+
+  // Sentencia para escoger lado (Botones)
+  LadoGiro = 'D';
+
+
+  if (LadoGiro == 'I') {
+    ServoUltrasonicoAdelante.write(180);
+    ServoUltrasonicoAtras.write(0);
+    PosServoUltrasonicoAdelante = 180;
+    PosServoUltrasonicoAtras = 0;
+  } else if (LadoGiro == 'D') {
+    ServoUltrasonicoAdelante.write(0);
+    ServoUltrasonicoAtras.write(180);
+    PosServoUltrasonicoAdelante = 0;
+    PosServoUltrasonicoAtras = 180;
+  }
+  delay(2000);
 }
 
 void loop() {
+  // Posicionar servos según sea la necesidad
+  if (millis() >= TiempoServosPasado + IntervaloEntrePosiciones) {
+    PosicionServo(PosServoDireccion, PosServoDireccionDeseada, 0, 180);
+    PosicionServo(PosServoUltrasonicoAdelante, PosServoUltrasonicoAdelanteDeseada, 0, 180);
+    PosicionServo(PosServoUltrasonicoAtras, PosServoUltrasonicoAtrasDeseada, 0, 180);
+    ServoDireccion.write(PosServoDireccion);
+    ServoUltrasonicoAdelante.write(PosServoUltrasonicoAdelante);
+    ServoUltrasonicoAtras.write(PosServoUltrasonicoAtras);
+    TiempoServosPasado = millis();
+  }
+  if (LadoGiro == 'I') {
+    PosServoUltrasonicoAdelanteDeseada = 180;
+    PosServoUltrasonicoAtrasDeseada = 0;
+  } else if (LadoGiro == 'D') {
+    PosServoUltrasonicoAdelanteDeseada = 0;
+    PosServoUltrasonicoAtrasDeseada = 180;
+  } else if (LadoGiro == 'C') {
+    PosServoUltrasonicoAdelanteDeseada = 90;
+    PosServoUltrasonicoAtrasDeseada = 90;
+  }
+
+  // Mediciones
+
+
+
+
+
+  if (millis() >= TiempoPasadoMediciones + IntervaloMediciones) {
+    //UltraSonico
+
+    DistanciaUltrasonicoDelante = Distancia_UltraSonico(TriggerUltrasonicoAdelante, EchoUltrasonicoAdelante);
+    DistanciaUltrasonicoAtras = Distancia_UltraSonico(TriggerUltrasonicoAtras, EchoUltrasonicoAtras);
+    DistanciaUltrasonicoObstaculo = Distancia_UltraSonico(TriggerUltrasonicoObstaculo, EchoUltrasonicoObstaculo);
+
+    // Medicion de Color
+    digitalWrite(PinS2, LOW);
+    digitalWrite(PinS3, LOW);
+    Rojo = pulseIn(PinSalidaColor, digitalRead(PinSalidaColor) == HIGH ? LOW : HIGH);
+    digitalWrite(PinS3, HIGH);
+    Azul = pulseIn(PinSalidaColor, digitalRead(PinSalidaColor) == HIGH ? LOW : HIGH);
+    digitalWrite(PinS2, HIGH);
+    Verde = pulseIn(PinSalidaColor, digitalRead(PinSalidaColor) == HIGH ? LOW : HIGH);
+
+    // Determinar Color
+
+
+    TiempoPasadoMediciones = millis();
+  }
+
+  unsigned long TiempoPasadoMediciones{};
+  int IntervaloMediciones{ 10 };
+
+
+
+  char LadoGiro{};        // I C D (Izquierda Centro Derecha)
+  char Color{};           // R V A (Rojo Verde Azul)
+  char DireccionCarro{};  // A B  (Adeltante o Atras)
+  int AnguloActual{};     // Valor de MPU6050 o giroscopio
+  int DistanciaUltrasonicoDelante{};
+  int DistanciaUltrasonicoAtras{};
+  int DistanciaUltrasonicoObstaculo{};
+  int ValorLineaIzquierda{};
+  int ValorLineaDerecha{};
+
+
+
   // mpuupdate();
 
   // Distancia_UltraSonico(triggerPin, echoPin);
@@ -108,3 +218,5 @@ void loop() {
   verde = pulseIn(out, digitalRead(out) == HIGH ? LOW : HIGH);  
   */
 }
+
+// Funciones EXTRA
