@@ -120,10 +120,11 @@ void setup() {
 
 
   // Sentencia para escoger lado (Botones)
-  LadoGiro = 'D';
-  DireccionCarro = 'B';
+  LadoGiro = 'C';
+  DireccionCarro = 'P';
+  PosServoDireccionDeseada = 60;
 
-
+  /*
   if (LadoGiro == 'I') {
     ServoUltrasonicoAdelante.write(180);
     ServoUltrasonicoAtras.write(0);
@@ -134,7 +135,9 @@ void setup() {
     ServoUltrasonicoAtras.write(180);
     PosServoUltrasonicoAdelante = 0;
     PosServoUltrasonicoAtras = 180;
-  }
+
+
+  */
   delay(2000);
 }
 
