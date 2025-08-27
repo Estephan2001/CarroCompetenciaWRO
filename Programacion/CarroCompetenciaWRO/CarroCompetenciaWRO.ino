@@ -148,6 +148,8 @@ void loop() {
     ServoUltrasonicoAtras.write(PosServoUltrasonicoAtras);
     TiempoServosPasado = millis();
   }
+
+  // Poner posicion deseada de los servos según el giro
   if (LadoGiro == 'I') {
     PosServoUltrasonicoAdelanteDeseada = 180;
     PosServoUltrasonicoAtrasDeseada = 0;
@@ -177,7 +179,6 @@ void loop() {
     digitalWrite(PinS2, HIGH);
     Verde = pulseIn(PinSalidaColor, digitalRead(PinSalidaColor) == HIGH ? LOW : HIGH);
     Color = detectarColor(Rojo, Verde, Azul);
-    Serial.println(Color);
 
     // Determinar Color
 
