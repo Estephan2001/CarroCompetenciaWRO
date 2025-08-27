@@ -138,23 +138,17 @@ void loop() {
     PosServoUltrasonicoAdelanteDeseada = 90;
     PosServoUltrasonicoAtrasDeseada = 90;
   }*/
-  ServoUltrasonicoAtras.write(45);
+
+
   // Posicionar servos según sea la necesidad
   if (millis() >= TiempoServosPasado + IntervaloEntrePosiciones) {
     PosicionServo(PosServoUltrasonicoAtras, PosServoUltrasonicoAtrasDeseada, 0, 180);
     //PosicionServo(PosServoDireccion, PosServoDireccionDeseada, 0, 180);
     //PosicionServo(PosServoUltrasonicoAdelante, PosServoUltrasonicoAdelanteDeseada, 0, 180);
-
-
-    PosServoUltrasonicoAtrasDeseada > 180 ? PosServoUltrasonicoAtrasDeseada = 180 : PosServoUltrasonicoAtrasDeseada = PosServoUltrasonicoAtrasDeseada;
-    PosServoUltrasonicoAtrasDeseada < 0 ? PosServoUltrasonicoAtrasDeseada = 0 : PosServoUltrasonicoAtrasDeseada = PosServoUltrasonicoAtrasDeseada;
-    PosServoUltrasonicoAtrasDeseada > PosServoUltrasonicoAtras ? PosServoUltrasonicoAtras++ : PosServoUltrasonicoAtras = PosServoUltrasonicoAtras;
-    PosServoUltrasonicoAtrasDeseada < PosServoUltrasonicoAtras ? PosServoUltrasonicoAtras-- : PosServoUltrasonicoAtras = PosServoUltrasonicoAtras;
-
-
     //ServoDireccion.write(PosServoDireccion);
     //ServoUltrasonicoAdelante.write(PosServoUltrasonicoAdelante);
-    ServoUltrasonicoAtras.write(PosServoUltrasonicoAtras);
+    ServoUltrasonicoAtras.write(0);
+    Serial.println(PosServoUltrasonicoAtrasDeseada);
     TiempoServosPasado = millis();
   }
 
