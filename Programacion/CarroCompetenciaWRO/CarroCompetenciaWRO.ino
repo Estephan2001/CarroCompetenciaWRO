@@ -161,8 +161,12 @@ void loop() {
     PosServoUltrasonicoAtrasDeseada = 90;
   }
 
-  // Mediciones
 
+
+  // Mediciones
+  // Angulo de carro
+  mpuupdate();
+  AnguloActual = yaw;
   if (millis() >= TiempoPasadoMediciones + IntervaloMediciones) {
     //UltraSonico
 
@@ -178,10 +182,12 @@ void loop() {
     Azul = pulseIn(PinSalidaColor, digitalRead(PinSalidaColor) == HIGH ? LOW : HIGH);
     digitalWrite(PinS2, HIGH);
     Verde = pulseIn(PinSalidaColor, digitalRead(PinSalidaColor) == HIGH ? LOW : HIGH);
+    // Determinar Color
     Color = detectarColor(Rojo, Verde, Azul);
 
-    // Determinar Color
+    // Medir Angulos
 
+    Serial.println(AnguloActual);
 
     TiempoPasadoMediciones = millis();
   }
