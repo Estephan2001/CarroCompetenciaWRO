@@ -53,9 +53,9 @@ char Color{};  // R V A (Rojo Verde Azul)
 int Rojo{};
 int Verde{};
 int Azul{};
-int UMBRAL_DIF = 15;      // Diferencia mínima entre componentes para decidir
-int MIN_VAL = 20;         // Valor mínimo válido para considerar un color
-int MAX_VAL = 255;        // Valor máximo válido (dependerá de tu sensor)
+int UMBRAL_DIF = 15;  // Diferencia mínima entre componentes para decidir
+int MIN_VAL = 20;     // Valor mínimo válido para considerar un color
+int MAX_VAL = 255;    // Valor máximo válido (dependerá de tu sensor)
 
 char DireccionCarro{};  // A B  (Adeltante o Atras)
 int AnguloActual{};     // Valor de MPU6050 o giroscopio
@@ -78,7 +78,8 @@ unsigned long TiempoPasadoMediciones{};
 int IntervaloMediciones{ 20 };
 
 
-
+// Prototipos de funciones
+char detectarColor(int r, int g, int b);
 
 void setup() {
   inicioMPU();
@@ -160,10 +161,6 @@ void loop() {
 
   // Mediciones
 
-
-
-
-
   if (millis() >= TiempoPasadoMediciones + IntervaloMediciones) {
     //UltraSonico
 
@@ -179,6 +176,8 @@ void loop() {
     Azul = pulseIn(PinSalidaColor, digitalRead(PinSalidaColor) == HIGH ? LOW : HIGH);
     digitalWrite(PinS2, HIGH);
     Verde = pulseIn(PinSalidaColor, digitalRead(PinSalidaColor) == HIGH ? LOW : HIGH);
+    Color = detectarColor(Rojo, Verde, Azul);
+    Serial.println(Color);
 
     // Determinar Color
 
@@ -186,37 +185,37 @@ void loop() {
     TiempoPasadoMediciones = millis();
   }
 
-  unsigned long TiempoPasadoMediciones{};
-  int IntervaloMediciones{ 10 };
 
 
-
-  char LadoGiro{};        // I C D (Izquierda Centro Derecha)
-  char Color{};           // R V A (Rojo Verde Azul)
-  char DireccionCarro{};  // A B  (Adeltante o Atras)
-  int AnguloActual{};     // Valor de MPU6050 o giroscopio
-  int DistanciaUltrasonicoDelante{};
-  int DistanciaUltrasonicoAtras{};
-  int DistanciaUltrasonicoObstaculo{};
-  int ValorLineaIzquierda{};
-  int ValorLineaDerecha{};
 
 
 
   // mpuupdate();
 
   // Distancia_UltraSonico(triggerPin, echoPin);
-
-
-  /* COLOR
-    digitalWrite(s2, LOW);  
-  digitalWrite(s3, LOW);   
-  rojo = pulseIn(out, digitalRead(out) == HIGH ? LOW : HIGH);  
-  digitalWrite(s3, HIGH);   
-  azul = pulseIn(out, digitalRead(out) == HIGH ? LOW : HIGH);  
-  digitalWrite(s2, HIGH);    
-  verde = pulseIn(out, digitalRead(out) == HIGH ? LOW : HIGH);  
-  */
 }
 
 // Funciones EXTRA
+
+char detectarColor(int r, int g, int b) {
+  // Si los valores son muy bajos, consideramos que no hay color válido
+  if (r < MIN_VAL && g < MIN_VAL && b < MIN_VAL) {
+    return '?';  // Sin detección
+  }
+
+  // Diferencias entre componentes
+  int difRG = r - g;
+  int difRB = r - b;
+  int difGB = g - b;
+
+  // --- Clasificación básica ---
+  if ((r > b + UMBRAL_DIF) && (r > g)) {
+    return 'A';  // Rojo
+  } else if ((b > r + UMBRAL_DIF) && (b > g)) {
+    return 'V';  // Azul
+  } else if ((g > r + UMBRAL_DIF) && (g > b)) {
+    return 'R';  // Verde (extra ejemplo)
+  } else {
+    return '?';  // Indefinido o mezcla
+  }
+}
