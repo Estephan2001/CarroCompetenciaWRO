@@ -45,6 +45,15 @@ int PosServoDireccionDeseada{ 90 };
 int PosServoUltrasonicoAdelanteDeseada{ 90 };
 int PosServoUltrasonicoAtrasPinDeseada{ 90 };
 
+char LadoGiro{};
+char Color{};
+int AnguloActual{};
+int DistanciaUltrasonicoDelante{};
+int DistanciaUltrasonicoAtras{};
+int DistanciaUltrasonicoObstaculo{};
+
+
+
 
 void setup() {
   inicioMPU();
