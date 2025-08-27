@@ -16,7 +16,7 @@
 #define EchoUltrasonicoAdelante 7
 #define TriggerUltrasonicoObstaculo 5
 #define EchoUltrasonicoObstaculo 4
-#define TiempoEntrePosiciones 15  //ms
+#define TiempoEntrePosiciones 5  //ms
 //Pines de Seguidores de línea analogos
 #define SeguidorIzquierda A6
 #define SeguidorDerecha A7
@@ -82,6 +82,7 @@ int IntervaloMediciones{ 20 };
 char detectarColor(int r, int g, int b);
 
 void setup() {
+
   inicioMPU();
   Serial.begin(9600);
 
@@ -116,42 +117,15 @@ void setup() {
   pinMode(InputMotor2, OUTPUT);
   digitalWrite(InputMotor1, LOW);
   digitalWrite(InputMotor2, LOW);
-  delay(3000);
 
 
   // Sentencia para escoger lado (Botones)
-  LadoGiro = 'C';
+  LadoGiro = 'I';
   DireccionCarro = 'P';
-  PosServoDireccionDeseada = 60;
-
-  /*
-  if (LadoGiro == 'I') {
-    ServoUltrasonicoAdelante.write(180);
-    ServoUltrasonicoAtras.write(0);
-    PosServoUltrasonicoAdelante = 180;
-    PosServoUltrasonicoAtras = 0;
-  } else if (LadoGiro == 'D') {
-    ServoUltrasonicoAdelante.write(0);
-    ServoUltrasonicoAtras.write(180);
-    PosServoUltrasonicoAdelante = 0;
-    PosServoUltrasonicoAtras = 180;
-
-
-  */
-  delay(2000);
+  PosServoDireccionDeseada = 45;
 }
 
 void loop() {
-  // Posicionar servos según sea la necesidad
-  if (millis() >= TiempoServosPasado + IntervaloEntrePosiciones) {
-    PosicionServo(PosServoDireccion, PosServoDireccionDeseada, 0, 180);
-    PosicionServo(PosServoUltrasonicoAdelante, PosServoUltrasonicoAdelanteDeseada, 0, 180);
-    PosicionServo(PosServoUltrasonicoAtras, PosServoUltrasonicoAtrasDeseada, 0, 180);
-    ServoDireccion.write(PosServoDireccion);
-    ServoUltrasonicoAdelante.write(PosServoUltrasonicoAdelante);
-    ServoUltrasonicoAtras.write(PosServoUltrasonicoAtras);
-    TiempoServosPasado = millis();
-  }
 
   // Poner posicion deseada de los servos según el giro
   if (LadoGiro == 'I') {
@@ -160,9 +134,28 @@ void loop() {
   } else if (LadoGiro == 'D') {
     PosServoUltrasonicoAdelanteDeseada = 0;
     PosServoUltrasonicoAtrasDeseada = 180;
-  } else if (LadoGiro == 'C') {
+  } /*else if (LadoGiro == 'C') {
     PosServoUltrasonicoAdelanteDeseada = 90;
     PosServoUltrasonicoAtrasDeseada = 90;
+  }*/
+  ServoUltrasonicoAtras.write(45);
+  // Posicionar servos según sea la necesidad
+  if (millis() >= TiempoServosPasado + IntervaloEntrePosiciones) {
+    PosicionServo(PosServoUltrasonicoAtras, PosServoUltrasonicoAtrasDeseada, 0, 180);
+    //PosicionServo(PosServoDireccion, PosServoDireccionDeseada, 0, 180);
+    //PosicionServo(PosServoUltrasonicoAdelante, PosServoUltrasonicoAdelanteDeseada, 0, 180);
+
+
+    PosServoUltrasonicoAtrasDeseada > 180 ? PosServoUltrasonicoAtrasDeseada = 180 : PosServoUltrasonicoAtrasDeseada = PosServoUltrasonicoAtrasDeseada;
+    PosServoUltrasonicoAtrasDeseada < 0 ? PosServoUltrasonicoAtrasDeseada = 0 : PosServoUltrasonicoAtrasDeseada = PosServoUltrasonicoAtrasDeseada;
+    PosServoUltrasonicoAtrasDeseada > PosServoUltrasonicoAtras ? PosServoUltrasonicoAtras++ : PosServoUltrasonicoAtras = PosServoUltrasonicoAtras;
+    PosServoUltrasonicoAtrasDeseada < PosServoUltrasonicoAtras ? PosServoUltrasonicoAtras-- : PosServoUltrasonicoAtras = PosServoUltrasonicoAtras;
+
+
+    //ServoDireccion.write(PosServoDireccion);
+    //ServoUltrasonicoAdelante.write(PosServoUltrasonicoAdelante);
+    ServoUltrasonicoAtras.write(PosServoUltrasonicoAtras);
+    TiempoServosPasado = millis();
   }
 
   // El Robot Se mueva a adelante, atras o pare.
@@ -204,15 +197,6 @@ void loop() {
 
     TiempoPasadoMediciones = millis();
   }
-
-
-
-
-
-
-  // mpuupdate();
-
-  // Distancia_UltraSonico(triggerPin, echoPin);
 }
 
 // Funciones EXTRA
