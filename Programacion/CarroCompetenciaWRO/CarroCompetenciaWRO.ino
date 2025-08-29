@@ -56,11 +56,13 @@ int MAX_VAL = 255;    // Valor máximo válido (dependerá de tu sensor)
 
 char DireccionCarro{};  // A B P(Adeltante o Atras o Parar)
 int AnguloActual{};     // Valor de MPU6050 o giroscopio
+// Variables donde se guarda la informacion obtenida de los sensores
 int DistanciaUltrasonicoDelante{};
 int DistanciaUltrasonicoAtras{};
 int DistanciaUltrasonicoObstaculo{};
 int ValorLineaIzquierda{};
 int ValorLineaDerecha{};
+int ContadorVueltas{};
 
 // Variables de pasos
 int Acto{ 0 };
@@ -73,6 +75,10 @@ int IntervaloEntrePosiciones{ TiempoEntrePosiciones };
 // Timer Mediciones
 unsigned long TiempoPasadoMediciones{};
 int IntervaloMediciones{ 20 };
+
+// Condiciones de inicio Robot
+int DistanciaInicialParedUltrasonicoAdelante{};
+int DistanciaInicialParedUltrasonicoAtras{};
 
 
 // Prototipos de funciones
@@ -119,7 +125,7 @@ void setup() {
 
 
   // Sentencia para escoger lado (Botones)
-  LadoGiro = 'C';
+  LadoGiro = 'I';
   DireccionCarro = 'P';
   PosServoDireccion = 97;
   Acto = 0;  //Calibraciones iniciales
@@ -197,13 +203,32 @@ void loop() {
   }
 
 
-//////////////////////////////////////////////////////////////////////////////////////////// Procedimiento para RETO 1 ///////////////////////////////////////////////////////////////////////////
-
-if(Acto = 0){}
+  //////////////////////////////////////////////////////////////////////////////////////////// Procedimiento para RETO 1 ///////////////////////////////////////////////////////////////////////////
 
 
 
+  /*
 
+  int DistanciaUltrasonicoDelante{};
+int DistanciaUltrasonicoAtras{};
+int DistanciaUltrasonicoObstaculo{};
+int ValorLineaIzquierda{};
+int ValorLineaDerecha{};
+
+int DistanciaParedUltrasonicoAdelante{};
+int DistanciaParedUltrasonicoAtras{};
+
+ContadorVueltas
+*/
+  if (Acto = 0) {  // Registras las condiciones iniciales
+    delay(1500);
+    DistanciaInicialParedUltrasonicoAdelante = DistanciaUltrasonicoDelante;
+    DistanciaInicialParedUltrasonicoAtras = DistanciaUltrasonicoAtras;
+    Acto = 1;
+  }
+
+  else if{};
+  
 }
 
 // Funciones EXTRA
