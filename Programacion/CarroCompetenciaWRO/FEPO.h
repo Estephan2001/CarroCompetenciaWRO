@@ -13,10 +13,8 @@ void calcoffset(bool console);
 void mpuupdate();
 
 
-extern float roll, pitch, yaw, gyroX, gyroY;
+extern float roll, pitch, yaw, gyroX, gyroY, angleZ;
 
 
 
 #endif
-
-

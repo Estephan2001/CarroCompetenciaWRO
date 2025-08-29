@@ -62,7 +62,7 @@ int DistanciaUltrasonicoAtras{};
 int DistanciaUltrasonicoObstaculo{};
 int ValorLineaIzquierda{};
 int ValorLineaDerecha{};
-int ContadorVueltas{};
+float ContadorVueltas{};
 
 // Variables de pasos
 int Acto{ 0 };
@@ -74,11 +74,18 @@ int IntervaloEntrePosiciones{ TiempoEntrePosiciones };
 
 // Timer Mediciones
 unsigned long TiempoPasadoMediciones{};
-int IntervaloMediciones{ 20 };
+int IntervaloMediciones{ 1 };
 
 // Condiciones de inicio Robot
 int DistanciaInicialParedUltrasonicoAdelante{};
 int DistanciaInicialParedUltrasonicoAtras{};
+int ErrorDistanciaAdelante{};
+int ErrorDistanciaAtras{};
+
+// Variables para contar vueltas
+float AnguloPrevio = 0;     // Ángulo en la última medición
+long AcumuladorAngulo = 0;  // Total de grados recorridos
+//int ContadorVueltas = 0;    // Número de vueltas completadas
 
 
 // Prototipos de funciones
@@ -127,7 +134,7 @@ void setup() {
   // Sentencia para escoger lado (Botones)
   LadoGiro = 'I';
   DireccionCarro = 'P';
-  PosServoDireccion = 97;
+  PosServoDireccion = 135;
   Acto = 0;  //Calibraciones iniciales
 }
 
@@ -176,6 +183,9 @@ void loop() {
 
   // Mediciones
   // Angulo de carro
+  // Medir Angulos
+  mpuupdate();
+  AnguloActual = yaw;
 
   if (millis() >= TiempoPasadoMediciones + IntervaloMediciones) {
     //UltraSonico
@@ -195,9 +205,32 @@ void loop() {
     // Determinar Color
     Color = detectarColor(Rojo, Verde, Azul);
 
-    // Medir Angulos
-    mpuupdate();
-    AnguloActual = yaw;
+
+
+
+    // Calcular diferencia angular entre mediciones
+    /*float Delta = AnguloActual - AnguloPrevio;
+
+    // Corregir el cruce entre -180 y +180
+    if (Delta > 180) Delta -= 360;
+    if (Delta < -180) Delta += 360;
+
+    // Acumular el ángulo recorrido
+    AcumuladorAngulo += Delta;
+
+    // Guardar para la siguiente iteración
+    AnguloPrevio = AnguloActual;
+
+    // Contar "medias vueltas" (180°)
+    if (AcumuladorAngulo >= 180) {
+      ContadorVueltas += 0.5;  // medio giro
+      AcumuladorAngulo -= 180;
+    } else if (AcumuladorAngulo <= -180) {
+      ContadorVueltas += 0.5;  // medio giro
+      AcumuladorAngulo += 180;
+    }*/
+
+
 
     TiempoPasadoMediciones = millis();
   }
@@ -219,16 +252,52 @@ int DistanciaParedUltrasonicoAdelante{};
 int DistanciaParedUltrasonicoAtras{};
 
 ContadorVueltas
+
+int ErrorDistanciaAdelante{};
+int ErrorDistanciaAtras{};
 */
-  if (Acto = 0) {  // Registras las condiciones iniciales
-    delay(1500);
+  if (Acto == 0) {  // Registras las condiciones iniciales
+    Serial.println("Acto 1");
+    DireccionCarro = 'A';
     DistanciaInicialParedUltrasonicoAdelante = DistanciaUltrasonicoDelante;
     DistanciaInicialParedUltrasonicoAtras = DistanciaUltrasonicoAtras;
     Acto = 1;
   }
 
-  else if{};
-  
+  else if (Acto == 1) {
+    // Contar las vueltas
+
+    ContadorVueltas = abs(angleZ / 360);
+    Serial.println(angleZ);
+    if (ContadorVueltas >= 3) {
+      DireccionCarro = 'P';
+      Acto = 2;
+    }
+  }
+
+  /*if (Acto == 0) {
+    Serial.println("Acto 1: inicio");
+    DireccionCarro = 'A';
+    DistanciaInicialParedUltrasonicoAdelante = DistanciaUltrasonicoDelante;
+    DistanciaInicialParedUltrasonicoAtras = DistanciaUltrasonicoAtras;
+
+    AnguloPrevio = yaw;  // inicializamos
+    AcumuladorAngulo = 0;
+    ContadorVueltas = 0;
+
+    Acto = 1;
+  }
+
+  else if (Acto == 1) {
+    Serial.print("Vueltas: ");
+    Serial.println(ContadorVueltas);
+
+    if (ContadorVueltas >= 2) {
+      DireccionCarro = 'P';
+      Serial.println("Meta alcanzada: 2.5 vueltas");
+      Acto = 2;
+    }
+  }*/
 }
 
 // Funciones EXTRA
