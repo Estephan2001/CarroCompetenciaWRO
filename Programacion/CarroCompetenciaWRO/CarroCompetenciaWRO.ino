@@ -6,9 +6,9 @@
 #include "ValorReferenciaSM.h"
 
 // Constantes (Definimos en dónde conectamos todo)
-#define ServoDireccionPin 9
+#define ServoDireccionPin 2
 #define ServoUltrasonicoAdelantePin 10
-#define ServoUltrasonicoAtrasPin 2
+#define ServoUltrasonicoAtrasPin 9
 // Pines de ultrasonicos
 #define TriggerUltrasonicoAtras 11
 #define EchoUltrasonicoAtras 3
@@ -40,6 +40,8 @@ Servo ServoUltrasonicoAtras;     // Creamos un objeto servo
 
 // Posiciones actuales Servo
 int PosServoDireccion{ 90 };
+const int MinServoDireccion{ 70 };
+const int MaxServoDireccion{ 125 };
 int PosServoUltrasonicoAdelante{ 90 };
 int PosServoUltrasonicoAtras{ 90 };
 
@@ -125,8 +127,8 @@ void setup() {
   // Inicializar Motor
   pinMode(InputMotor1, OUTPUT);
   pinMode(InputMotor2, OUTPUT);
-  digitalWrite(InputMotor1, LOW);
-  digitalWrite(InputMotor2, LOW);
+  analogWrite(InputMotor1, 0);
+  analogWrite(InputMotor2, 0);
 
   // Aquí decidimos con los botones a dónde irá el robot (Izquierda o derecha)
 
@@ -134,7 +136,7 @@ void setup() {
   // Sentencia para escoger lado (Botones)
   LadoGiro = 'I';
   DireccionCarro = 'P';
-  PosServoDireccion = 135;
+  PosServoDireccion = 97;
   Acto = 0;  //Calibraciones iniciales
 }
 
@@ -147,6 +149,7 @@ void loop() {
     PosServoUltrasonicoAtras = 0;
     ServoUltrasonicoAdelante.write(PosServoUltrasonicoAdelante);
     ServoUltrasonicoAtras.write(PosServoUltrasonicoAtras);
+    delay(1500);
     LadoGiro = 0;
   } else if (LadoGiro == 'D') {
 
@@ -154,12 +157,14 @@ void loop() {
     PosServoUltrasonicoAtras = 180;
     ServoUltrasonicoAdelante.write(PosServoUltrasonicoAdelante);
     ServoUltrasonicoAtras.write(PosServoUltrasonicoAtras);
+    delay(1500);
     LadoGiro = 0;
   } else if (LadoGiro == 'C') {
     PosServoUltrasonicoAdelante = 90;
     PosServoUltrasonicoAtras = 90;
     ServoUltrasonicoAdelante.write(PosServoUltrasonicoAdelante);
     ServoUltrasonicoAtras.write(PosServoUltrasonicoAtras);
+    delay(1500);
     LadoGiro = 0;
   }
 
@@ -171,14 +176,14 @@ void loop() {
 
   // El Robot Se mueva a adelante, atras o pare.
   if (DireccionCarro == 'A') {
-    digitalWrite(InputMotor1, HIGH);
-    digitalWrite(InputMotor2, LOW);
+    analogWrite(InputMotor1, 150);
+    analogWrite(InputMotor2, 0);
   } else if (DireccionCarro == 'B') {
-    digitalWrite(InputMotor1, LOW);
-    digitalWrite(InputMotor2, HIGH);
+    analogWrite(InputMotor1, 0);
+    analogWrite(InputMotor2, 150);
   } else if (DireccionCarro == 'P') {
-    digitalWrite(InputMotor1, LOW);
-    digitalWrite(InputMotor2, LOW);
+    analogWrite(InputMotor1, 0);
+    analogWrite(InputMotor2, 0);
   }
 
   // Mediciones
@@ -191,10 +196,11 @@ void loop() {
     //UltraSonico
 
     DistanciaUltrasonicoDelante = Distancia_UltraSonico(TriggerUltrasonicoAdelante, EchoUltrasonicoAdelante);
-    DistanciaUltrasonicoAtras = Distancia_UltraSonico(TriggerUltrasonicoAtras, EchoUltrasonicoAtras);
-    DistanciaUltrasonicoObstaculo = Distancia_UltraSonico(TriggerUltrasonicoObstaculo, EchoUltrasonicoObstaculo);
+    //DistanciaUltrasonicoAtras = Distancia_UltraSonico(TriggerUltrasonicoAtras, EchoUltrasonicoAtras);
+    //DistanciaUltrasonicoObstaculo = Distancia_UltraSonico(TriggerUltrasonicoObstaculo, EchoUltrasonicoObstaculo);
 
     // Medicion de Color
+    /*
     digitalWrite(PinS2, LOW);
     digitalWrite(PinS3, LOW);
     Rojo = pulseIn(PinSalidaColor, digitalRead(PinSalidaColor) == HIGH ? LOW : HIGH);
@@ -204,33 +210,7 @@ void loop() {
     Verde = pulseIn(PinSalidaColor, digitalRead(PinSalidaColor) == HIGH ? LOW : HIGH);
     // Determinar Color
     Color = detectarColor(Rojo, Verde, Azul);
-
-
-
-
-    // Calcular diferencia angular entre mediciones
-    /*float Delta = AnguloActual - AnguloPrevio;
-
-    // Corregir el cruce entre -180 y +180
-    if (Delta > 180) Delta -= 360;
-    if (Delta < -180) Delta += 360;
-
-    // Acumular el ángulo recorrido
-    AcumuladorAngulo += Delta;
-
-    // Guardar para la siguiente iteración
-    AnguloPrevio = AnguloActual;
-
-    // Contar "medias vueltas" (180°)
-    if (AcumuladorAngulo >= 180) {
-      ContadorVueltas += 0.5;  // medio giro
-      AcumuladorAngulo -= 180;
-    } else if (AcumuladorAngulo <= -180) {
-      ContadorVueltas += 0.5;  // medio giro
-      AcumuladorAngulo += 180;
-    }*/
-
-
+*/
 
     TiempoPasadoMediciones = millis();
   }
@@ -257,47 +237,37 @@ int ErrorDistanciaAdelante{};
 int ErrorDistanciaAtras{};
 */
   if (Acto == 0) {  // Registras las condiciones iniciales
-    Serial.println("Acto 1");
+    //Serial.println("Acto 1");
     DireccionCarro = 'A';
+    DistanciaUltrasonicoDelante = Distancia_UltraSonico(TriggerUltrasonicoAdelante, EchoUltrasonicoAdelante) + 10;  ////////////MODIFICAR SI SE QUIERE SEPARAR DE LA PARED
     DistanciaInicialParedUltrasonicoAdelante = DistanciaUltrasonicoDelante;
     DistanciaInicialParedUltrasonicoAtras = DistanciaUltrasonicoAtras;
+    ServoDireccion.write(97);
     Acto = 1;
   }
-
+  ////////////////**************************************************************************************************************************************************************************************
   else if (Acto == 1) {
     // Contar las vueltas
 
     ContadorVueltas = abs(angleZ / 360);
-    Serial.println(angleZ);
-    if (ContadorVueltas >= 3) {
+    // Serial.println(angleZ);
+    if (ContadorVueltas >= 7.8) {  ////MODIFICAR SI LO COMPLETA LAS VUELTAS
       DireccionCarro = 'P';
       Acto = 2;
     }
+    //////////////////////////////////**********************************************************************************************************************************************************************
+    // Que se mantenga a cierta distancia
+
+
+    float errorDistancia{};
+    errorDistancia = (DistanciaUltrasonicoDelante - DistanciaInicialParedUltrasonicoAdelante) * 20;  //// 20 - 30 SI REACCIONA MUY LENTO
+    int PosServoError = map(errorDistancia, 20, -20, MaxServoDireccion, MinServoDireccion);
+    PosServoError > MaxServoDireccion ? PosServoError = MaxServoDireccion : PosServoError = PosServoError;
+    PosServoError < MinServoDireccion ? PosServoError = MinServoDireccion : PosServoError = PosServoError;
+    ///////////**********************************************************************************************************************************************************
+    PosServoDireccion = PosServoError;
+    ServoDireccion.write(PosServoDireccion);
   }
-
-  /*if (Acto == 0) {
-    Serial.println("Acto 1: inicio");
-    DireccionCarro = 'A';
-    DistanciaInicialParedUltrasonicoAdelante = DistanciaUltrasonicoDelante;
-    DistanciaInicialParedUltrasonicoAtras = DistanciaUltrasonicoAtras;
-
-    AnguloPrevio = yaw;  // inicializamos
-    AcumuladorAngulo = 0;
-    ContadorVueltas = 0;
-
-    Acto = 1;
-  }
-
-  else if (Acto == 1) {
-    Serial.print("Vueltas: ");
-    Serial.println(ContadorVueltas);
-
-    if (ContadorVueltas >= 2) {
-      DireccionCarro = 'P';
-      Serial.println("Meta alcanzada: 2.5 vueltas");
-      Acto = 2;
-    }
-  }*/
 }
 
 // Funciones EXTRA
