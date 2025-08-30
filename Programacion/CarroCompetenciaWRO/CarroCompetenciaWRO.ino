@@ -40,8 +40,8 @@ Servo ServoUltrasonicoAtras;     // Creamos un objeto servo
 
 // Posiciones actuales Servo
 int PosServoDireccion{ 90 };
-const int MinServoDireccion{ 70 };
-const int MaxServoDireccion{ 125 };
+int MinServoDireccion{ 70 };
+int MaxServoDireccion{ 125 };
 int PosServoUltrasonicoAdelante{ 90 };
 int PosServoUltrasonicoAtras{ 90 };
 
@@ -65,9 +65,11 @@ int DistanciaUltrasonicoObstaculo{};
 int ValorLineaIzquierda{};
 int ValorLineaDerecha{};
 float ContadorVueltas{};
+int PosServoError{};
 
 // Variables de pasos
 int Acto{ 0 };
+int dir{ 0 };
 
 
 // Timers
@@ -93,10 +95,11 @@ long AcumuladorAngulo = 0;  // Total de grados recorridos
 // Prototipos de funciones
 char detectarColor(int r, int g, int b);
 
+
 void setup() {
 
   inicioMPU();
-  Serial.begin(9600);
+  // Serial.begin(9600);
 
   ServoDireccion.attach(ServoDireccionPin);                      // Pin donde está conectado el servo (PWM)
   ServoUltrasonicoAdelante.attach(ServoUltrasonicoAdelantePin);  // Pin donde está conectado el servo (PWM)
@@ -130,11 +133,30 @@ void setup() {
   analogWrite(InputMotor1, 0);
   analogWrite(InputMotor2, 0);
 
+  pinMode(0, INPUT_PULLUP);
+
+  // BOTONES CONTROL
+  bool inicio{ true };
+  while (inicio) {
+    if (digitalRead(1) == LOW) {
+      LadoGiro = 'I';
+      inicio = false;
+      int MinServoDireccion{ 70 };
+      int MaxServoDireccion{ 125 };
+    }
+    if (digitalRead(0) == LOW) {
+      LadoGiro = 'D';
+      inicio = false;
+      int MinServoDireccion{ 125 };
+      int MaxServoDireccion{ 70 };
+    }
+  }
+
   // Aquí decidimos con los botones a dónde irá el robot (Izquierda o derecha)
 
 
   // Sentencia para escoger lado (Botones)
-  LadoGiro = 'I';
+
   DireccionCarro = 'P';
   PosServoDireccion = 97;
   Acto = 0;  //Calibraciones iniciales
@@ -149,22 +171,25 @@ void loop() {
     PosServoUltrasonicoAtras = 0;
     ServoUltrasonicoAdelante.write(PosServoUltrasonicoAdelante);
     ServoUltrasonicoAtras.write(PosServoUltrasonicoAtras);
-    delay(1500);
+    delay(2000);
     LadoGiro = 0;
+
+
   } else if (LadoGiro == 'D') {
 
     PosServoUltrasonicoAdelante = 0;
     PosServoUltrasonicoAtras = 180;
     ServoUltrasonicoAdelante.write(PosServoUltrasonicoAdelante);
     ServoUltrasonicoAtras.write(PosServoUltrasonicoAtras);
-    delay(1500);
+    delay(2000);
     LadoGiro = 0;
+
   } else if (LadoGiro == 'C') {
     PosServoUltrasonicoAdelante = 90;
     PosServoUltrasonicoAtras = 90;
     ServoUltrasonicoAdelante.write(PosServoUltrasonicoAdelante);
     ServoUltrasonicoAtras.write(PosServoUltrasonicoAtras);
-    delay(1500);
+    delay(2000);
     LadoGiro = 0;
   }
 
@@ -261,12 +286,21 @@ int ErrorDistanciaAtras{};
 
     float errorDistancia{};
     errorDistancia = (DistanciaUltrasonicoDelante - DistanciaInicialParedUltrasonicoAdelante) * 20;  //// 20 - 30 SI REACCIONA MUY LENTO
-    int PosServoError = map(errorDistancia, 20, -20, MaxServoDireccion, MinServoDireccion);
-    PosServoError > MaxServoDireccion ? PosServoError = MaxServoDireccion : PosServoError = PosServoError;
-    PosServoError < MinServoDireccion ? PosServoError = MinServoDireccion : PosServoError = PosServoError;
-    ///////////**********************************************************************************************************************************************************
+    int PosServoError = map(errorDistancia, 20, -20, MinServoDireccion, MaxServoDireccion);
+
+    /*if (dir == 1) {
+      int PosServoError = map(errorDistancia, 20, -20, MaxServoDireccion, MinServoDireccion);
+    }
+
+    if (dir == 2) {
+      int PosServoError = map(errorDistancia, 20, -20, MinServoDireccion, MaxServoDireccion);
+    }*/
+    if (PosServoError > MaxServoDireccion) PosServoError = MaxServoDireccion;
+    if (PosServoError < MinServoDireccion) PosServoError = MinServoDireccion;
     PosServoDireccion = PosServoError;
     ServoDireccion.write(PosServoDireccion);
+
+    ///////////**********************************************************************************************************************************************************
   }
 }
 
